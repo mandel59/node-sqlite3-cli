@@ -1,5 +1,5 @@
 {
-  "name": "node-sqlite3-cli",
+  "name": "@mandel59/sqlite3-cli",
   "version": "0.1.0",
   "description": "alternative sqlite3 cli",
   "engines": {
