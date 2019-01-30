@@ -3,6 +3,12 @@
 - readline
 - output as ndjson
 
+## Install
+
+```
+npm install -g @mandel59/sqlite3-cli
+```
+
 ## Limitation
 
 - New lines in a statement not supported yet.
