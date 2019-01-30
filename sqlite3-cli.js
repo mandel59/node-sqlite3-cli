@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const util = require("util")
 const readline = require("readline")
 const sqlite3 = require("sqlite3")
