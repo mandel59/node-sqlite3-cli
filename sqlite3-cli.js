@@ -174,7 +174,7 @@ class SQLite3CLI {
                 }
             }
         } finally {
-            new Promise((resolve, reject) => {
+            await new Promise((resolve, reject) => {
                 db.close((err) => {
                     if (err) {
                         reject(err)
