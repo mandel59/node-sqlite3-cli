@@ -50,6 +50,74 @@ function createInterrupter() {
     return /** @type {Interrupter} */ (interrupter)
 }
 
+/**
+ * @param {readline.Interface} rl
+ * @param {boolean} terminal
+ * @returns {AsyncIterator<string>}
+ */
+function createReadlineAsyncIterator(rl, terminal) {
+    /** @type {Array<string | null>} */
+    const buffer = []
+    /** @param {string | null} [line] */
+    const push = (line) => {
+        if (line != null) {
+            buffer.push(line)
+        } else {
+            buffer.push(null)
+        }
+    }
+    /** @type {(line?: string | null) => void} */
+    let resolver = push
+    /** @type {(line?: string) => void} */
+    const handler = (line) => {
+        if (line != null) {
+            resolver(line)
+        } else {
+            resolver(null)
+        }
+        rl.pause()
+        resolver = push
+    }
+    rl.addListener("line", handler)
+    rl.addListener("close", handler)
+    const nextLine = () => {
+        return new Promise((resolve) => {
+            if (buffer.length > 0) {
+                resolve(buffer.shift())
+                return
+            }
+            if (terminal) {
+                rl.prompt()
+            }
+            rl.resume()
+            resolver = resolve
+        })
+    }
+    let done = false
+    return {
+        async next() {
+            if (done) {
+                return {
+                    done: true,
+                    value: '',
+                }
+            }
+            const line = await nextLine()
+            if (line != null) {
+                return {
+                    done: false,
+                    value: line,
+                }
+            } else {
+                return {
+                    done: true,
+                    value: '',
+                }
+            }
+        }
+    }
+}
+
 class SQLite3CLI {
     /**
      * @param {string} dbfile
@@ -90,6 +158,7 @@ class SQLite3CLI {
             this.interrupter.interrupt(reason)
         }
         this.rl.addListener("SIGINT", handleSigInt)
+        this.rlAsyncIterator = createReadlineAsyncIterator(this.rl, this.terminal)
     }
     /**
      * @param {string[]} argv
@@ -101,25 +170,15 @@ class SQLite3CLI {
         const cli = new this(dbfile, process.stdout)
         return cli
     }
-    nextLine() {
-        const nextLine = new Promise((resolve) => {
-            if (this.terminal) {
-                this.rl.prompt()
-            }
-            /** @type {(line?: string) => void} */
-            const handler = (line) => {
-                this.rl.removeListener("line", handler)
-                this.rl.removeListener("close", handler)
-                if (line != null) {
-                    resolve(line)
-                } else {
-                    resolve(null)
-                }
-            }
-            this.rl.addListener("line", handler)
-            this.rl.addListener("close", handler)
-        })
-        return nextLine
+    async nextLine() {
+        const {
+            done,
+            value
+        } = await this.rlAsyncIterator.next()
+        if (done) {
+            return null
+        }
+        return value
     }
     async start() {
         /** @type {sqlite3.Database} */
