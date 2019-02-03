@@ -1,6 +1,6 @@
 {
   "name": "@mandel59/sqlite3-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "alternative sqlite3 cli",
   "engines": {
     "node": ">= 7.6"
