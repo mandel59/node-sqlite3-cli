@@ -20,5 +20,7 @@
   },
   "dependencies": {
     "sqlite3": "^4.0.6"
-  }
+  },
+  "homepage": "https://github.com/mandel59/node-sqlite3-cli",
+  "repository": "github:mandel59/node-sqlite3-cli"
 }
